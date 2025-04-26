@@ -1,15 +1,12 @@
-from dotenv import load_dotenv
-import os
+from kim.voice_input import recognize_speech_from_microphone
 
-# Carregar as variáveis de ambiente do arquivo .env
-load_dotenv()
-
-# Obter a chave da OpenAI
-openai_key = os.getenv("OPENAI_API_KEY")
-
-# Verificar se a chave foi carregada corretamente
-if openai_key:
-    print("✅ OpenAI key loaded successfully!")
-    print(f"Chave carregada: {openai_key}")  # Isso vai mostrar a chave (não compartilhe isso publicamente)
-else:
-    print("❌ Failed to load OpenAI key.")
+def main():
+    # Test the voice input function
+    user_message = recognize_speech_from_microphone()
+    if user_message:
+        print(f"User said: {user_message}")
+    else:
+        print("No speech recognized.")
+    
+if __name__ == "__main__":
+    main()
