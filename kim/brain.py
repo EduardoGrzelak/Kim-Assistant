@@ -18,31 +18,32 @@ User said:
 
 Update the profile:
 - Fill in and correct existing fields.
-- If you notice new relevant information (such as prefered days, new activities, etc) create new categories.
+- If you notice new relevant information (such as preferred days, new activities, etc) create new categories.
 - Remember, the profile is never complete, it evolves over time
 
 Your answer:
 """
     answer = openai.ChatCompletion.create(
-        model = "gpt-4.1",
-        input = [{"role": "user", "content": prompt}],
-        temperature = 0.4
+        model="gpt-4.0-turbo",  # Modelo que você quer usar
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.4
     )
     
+    # Agora pegamos a resposta como uma string normal (não JSON)
     new_profile = answer['choices'][0]['message']['content']
-    return json.loads(new_profile)
+    return new_profile  # Retornamos como string mesmo (não JSON)
 
 def generate_question(current_profile, conversation_so_far):
     prompt = f"""
 You are Kim, a very human and gentle personal assistant
 
 Current profile:
-{json.dumps(current_profile, indet=2)}
+{json.dumps(current_profile, indent=2)}
 
 Conversation so far:
 "{conversation_so_far}"
 Your mission:
-- Continously enrich the user's profile.
+- Continuously enrich the user's profile.
 - If the profile is empty, ask for basic information such as name, age and occupation.
 - If there is data, investigate more: hobbies, interests, work schedule, boundaries, etc.
 - In every new exchange, find ways to discover more things.
@@ -52,8 +53,8 @@ Your mission:
 Answer next what Kim should say
 """
     answer = openai.ChatCompletion.create(
-        model = "gpt-4.1",
+        model="gpt-4.0-turbo",
         messages=[{"role": "user", "content": prompt}],
-        temperature = 0.4
+        temperature=0.4
     )
     return answer['choices'][0]['message']['content']
