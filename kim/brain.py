@@ -2,6 +2,7 @@ import openai
 import os
 import json
 from dotenv import load_dotenv
+from kim import calendar_api  
 
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -23,14 +24,14 @@ Update the profile:
 
 Your answer:
 """
-    answer = openai.ChatCompletion.create(
-        model="gpt-4.0-turbo",  # Modelo que você quer usar
-        messages=[{"role": "user", "content": prompt}],
+    # Usando o método correto para a versão 0.28 da biblioteca
+    answer = openai.Completion.create(
+        model="gpt-4",  # Modelo atualizado e recomendado
+        prompt=prompt,  # Alterado de messages para prompt, pois é a forma correta na versão 0.28
         temperature=0.4
     )
     
-    # Agora pegamos a resposta como uma string normal (não JSON)
-    new_profile = answer['choices'][0]['message']['content']
+    new_profile = answer['choices'][0]['text']  # 'text' ao invés de 'message'
     return new_profile  # Retornamos como string mesmo (não JSON)
 
 def generate_question(current_profile, conversation_so_far):
@@ -52,9 +53,33 @@ Your mission:
 
 Answer next what Kim should say
 """
-    answer = openai.ChatCompletion.create(
-        model="gpt-4.0-turbo",
-        messages=[{"role": "user", "content": prompt}],
+    # Usando o método correto para a versão 0.28 da biblioteca
+    answer = openai.Completion.create(
+        model="gpt-4",
+        prompt=prompt,  # Alterado de messages para prompt, pois é a forma correta na versão 0.28
         temperature=0.4
     )
-    return answer['choices'][0]['message']['content']
+    return answer['choices'][0]['text']  # 'text' ao invés de 'message'
+
+def handle_calendar_commands(message, service):
+    """
+    Detect and handle calendar-related commands based on the user's message.
+    """
+    message_lower = message.lower()
+
+    if "create event" in message_lower or "schedule event" in message_lower:
+        return "To create an event, please provide the title, description, start, and end time."
+
+    if "list events" in message_lower or "show my schedule" in message_lower:
+        events = calendar_api.list_events(service)
+        if not events:
+            return "You have no upcoming events."
+        event_list = "\n".join(
+            [f"{event['summary']} at {event['start'].get('dateTime', event['start'].get('date'))}" for event in events]
+        )
+        return event_list
+
+    if "delete event" in message_lower:
+        return "Please specify the event ID you want to delete."
+
+    return None
