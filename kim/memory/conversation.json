@@ -1,0 +1,52 @@
+[
+    {
+        "role": "user",
+        "content": "26 April 2:00 a.m.",
+        "timestamp": "2025-04-26T22:24:29.192236+02:00"
+    },
+    {
+        "role": "assistant",
+        "content": "Please provide the title for the event.",
+        "timestamp": "2025-04-26T22:24:29.192984+02:00"
+    },
+    {
+        "role": "user",
+        "content": "accent",
+        "timestamp": "2025-04-26T22:24:55.250755+02:00"
+    },
+    {
+        "role": "assistant",
+        "content": "Please provide the event details.",
+        "timestamp": "2025-04-26T22:24:55.251365+02:00"
+    },
+    {
+        "role": "user",
+        "content": "accent",
+        "timestamp": "2025-04-26T22:25:02.325966+02:00"
+    },
+    {
+        "role": "assistant",
+        "content": "Could you please provide more details about the event you want to schedule?",
+        "timestamp": "2025-04-26T22:25:02.326593+02:00"
+    },
+    {
+        "role": "user",
+        "content": "asset",
+        "timestamp": "2025-04-26T22:25:15.149927+02:00"
+    },
+    {
+        "role": "assistant",
+        "content": "Please provide the title, date, start time, and end time for the event.",
+        "timestamp": "2025-04-26T22:25:15.150499+02:00"
+    },
+    {
+        "role": "user",
+        "content": "accent",
+        "timestamp": "2025-04-26T22:25:33.344626+02:00"
+    },
+    {
+        "role": "assistant",
+        "content": "Could you please provide more details about the event you want to schedule?",
+        "timestamp": "2025-04-26T22:25:33.345238+02:00"
+    }
+]

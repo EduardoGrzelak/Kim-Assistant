@@ -1,7 +1,9 @@
-openai
+openai>=1.0.0
 python-dotenv
-pyaudio
 SpeechRecognition
+PyAudio
 google-api-python-client
 google-auth-httplib2
 google-auth-oauthlib
+dateparser
+pytz

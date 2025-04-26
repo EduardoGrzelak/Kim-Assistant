@@ -1,0 +1,37 @@
+{
+    "personal": {
+        "name": null,
+        "preferred_name": null,
+        "timezone": "America/Sao_Paulo"
+    },
+    "schedule": {
+        "work_hours": {
+            "start": "09:00",
+            "end": "18:00",
+            "days": [
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday"
+            ]
+        },
+        "break_preferences": {
+            "lunch_time": "12:00-13:00",
+            "short_breaks": [
+                "11:00",
+                "15:00"
+            ]
+        }
+    },
+    "preferences": {
+        "meeting_duration": 60,
+        "buffer_time": 15,
+        "preferred_meeting_times": [
+            "10:00-12:00",
+            "14:00-16:00"
+        ],
+        "default_event_duration": 60
+    },
+    "responsibilities": []
+}

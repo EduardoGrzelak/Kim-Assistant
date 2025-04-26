@@ -1,86 +1,156 @@
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 import datetime
+from typing import Dict, List, Optional
 
-# 📌 Authenticate with Google Calendar API
+DEFAULT_TIMEZONE = 'Europe/Berlin'
+
 def authenticate_google_calendar():
-    """
-    Authenticates the Google Calendar API using service account credentials.
-    Returns the service object to interact with Google Calendar.
-    """
+    """Authenticate with Google Calendar API with better error handling"""
     SCOPES = ['https://www.googleapis.com/auth/calendar']
-    SERVICE_ACCOUNT_FILE = 'credentials.json'  # Ensure this file exists and contains your credentials
+    SERVICE_ACCOUNT_FILE = 'credentials.json'
 
-    credentials = service_account.Credentials.from_service_account_file(
-        SERVICE_ACCOUNT_FILE, scopes=SCOPES
-    )
-    service = build('calendar', 'v3', credentials=credentials)
-    return service
+    try:
+        credentials = service_account.Credentials.from_service_account_file(
+            SERVICE_ACCOUNT_FILE, scopes=SCOPES
+        )
+        return build('calendar', 'v3', credentials=credentials)
+    except Exception as e:
+        print(f"⚠️ Calendar authentication failed: {str(e)}")
+        raise
 
-# 📅 List events in the calendar
-def list_events(service):
-    """
-    Lists upcoming events from the Google Calendar starting from the current time.
-    Returns a list of events.
-    """
-    now = datetime.datetime.utcnow().isoformat() + 'Z'  # Current time in ISO 8601 format
-    events_result = service.events().list(
-        calendarId='primary',  # Using the primary calendar
-        timeMin=now,
-        maxResults=10,
-        singleEvents=True,
-        orderBy='startTime'
-    ).execute()
+def create_event(
+    service,
+    summary: str,
+    start_datetime: str,
+    end_datetime: str,
+    description: str = "",
+    timezone: str = DEFAULT_TIMEZONE
+) -> Dict:
+    """Create event with robust error handling"""
+    try:
+        # Validate time format
+        if 'T' not in start_datetime or 'T' not in end_datetime:
+            raise ValueError("Invalid time format - must include date and time")
+            
+        event = {
+            'summary': summary,
+            'description': description,
+            'start': {
+                'dateTime': start_datetime,
+                'timeZone': timezone
+            },
+            'end': {
+                'dateTime': end_datetime,
+                'timeZone': timezone
+            },
+        }
+        
+        created_event = service.events().insert(
+            calendarId='primary',
+            body=event
+        ).execute()
+        
+        return created_event
+        
+    except HttpError as e:
+        print(f"⚠️ Google API error: {str(e)}")
+        raise
+    except Exception as e:
+        print(f"⚠️ Event creation error: {str(e)}")
+        raise
 
-    events = events_result.get('items', [])
-    return events
+def list_events(service, max_results: int = 10) -> List[Dict]:
+    """List events with error handling"""
+    try:
+        now = datetime.datetime.utcnow().isoformat() + 'Z'
+        events_result = service.events().list(
+            calendarId='primary',
+            timeMin=now,
+            maxResults=max_results,
+            singleEvents=True,
+            orderBy='startTime'
+        ).execute()
+        return events_result.get('items', [])
+    except Exception as e:
+        print(f"⚠️ Event listing error: {str(e)}")
+        return []
 
-# ➕ Create event in the calendar
-def create_event(service, summary, description, start_datetime, end_datetime):
-    """
-    Creates an event in Google Calendar with the provided details.
-    Receives details like title, description, start and end times.
-    """
-    event = {
-        'summary': summary,
-        'description': description,
-        'start': {'dateTime': start_datetime, 'timeZone': 'America/Sao_Paulo'},
-        'end': {'dateTime': end_datetime, 'timeZone': 'America/Sao_Paulo'},
-    }
-    event = service.events().insert(calendarId='primary', body=event).execute()
-    return event
+def update_event(
+    service,
+    event_id: str,
+    summary: Optional[str] = None,
+    start_datetime: Optional[str] = None,
+    end_datetime: Optional[str] = None,
+    description: Optional[str] = None,
+    timezone: str = DEFAULT_TIMEZONE
+) -> Dict:
+    """Update an existing event"""
+    try:
+        # First get the existing event
+        event = service.events().get(
+            calendarId='primary',
+            eventId=event_id
+        ).execute()
 
-# 🔁 Update an existing event
-def update_event(service, event_id, new_summary=None, new_description=None, new_start=None, new_end=None):
-    """
-    Updates an existing event in Google Calendar, if the event has already been created.
-    You can change the title, description, start and end times.
-    """
-    event = service.events().get(calendarId='primary', eventId=event_id).execute()
+        # Update only the fields that were provided
+        if summary is not None:
+            event['summary'] = summary
+        if description is not None:
+            event['description'] = description
+        if start_datetime is not None:
+            event['start'] = {
+                'dateTime': start_datetime,
+                'timeZone': timezone
+            }
+        if end_datetime is not None:
+            event['end'] = {
+                'dateTime': end_datetime,
+                'timeZone': timezone
+            }
 
-    if new_summary:
-        event['summary'] = new_summary
-    if new_description:
-        event['description'] = new_description
-    if new_start and new_end:
-        event['start']['dateTime'] = new_start
-        event['end']['dateTime'] = new_end
+        updated_event = service.events().update(
+            calendarId='primary',
+            eventId=event_id,
+            body=event
+        ).execute()
 
-    updated_event = service.events().update(calendarId='primary', eventId=event_id, body=event).execute()
-    return updated_event
+        return updated_event
 
-# ❌ Delete an event
-def delete_event(service, event_id):
-    """
-    Deletes an existing event based on the event ID.
-    """
-    service.events().delete(calendarId='primary', eventId=event_id).execute()
+    except HttpError as e:
+        print(f"⚠️ Google API error: {str(e)}")
+        raise
+    except Exception as e:
+        print(f"⚠️ Event update error: {str(e)}")
+        raise
 
-# 🗓️ Get details of a specific event
-def get_event(service, event_id):
-    """
-    Retrieves the details of an event based on the event ID.
-    Returns the event details.
-    """
-    event = service.events().get(calendarId='primary', eventId=event_id).execute()
-    return event
+def delete_event(service, event_id: str) -> bool:
+    """Delete an event"""
+    try:
+        service.events().delete(
+            calendarId='primary',
+            eventId=event_id
+        ).execute()
+        return True
+    except HttpError as e:
+        print(f"⚠️ Google API error: {str(e)}")
+        raise
+    except Exception as e:
+        print(f"⚠️ Event deletion error: {str(e)}")
+        raise
+
+def get_event(service, event_id: str) -> Dict:
+    """Get a specific event"""
+    try:
+        event = service.events().get(
+            calendarId='primary',
+            eventId=event_id
+        ).execute()
+        return event
+    except HttpError as e:
+        print(f"⚠️ Google API error: {str(e)}")
+        raise
+    except Exception as e:
+        print(f"⚠️ Event retrieval error: {str(e)}")
+        raise
